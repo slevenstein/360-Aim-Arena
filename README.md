@@ -1,5 +1,7 @@
 # 360 AIM ARENA
 
+![image](https://user-images.githubusercontent.com/33261445/175771330-87b6755a-02b3-416c-8f1c-3d237f513201.png)
+
 Shoot as many spinning eyeballs before time runs out. Timer starts once you shoot the first eyeball. That's it!
 (make sure to open your terminal in another tab to check your score and watch the timer)
 
