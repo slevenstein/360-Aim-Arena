@@ -36,7 +36,7 @@ public:
     // Draws the current SceneNode
     void Draw();
     // Updates the current SceneNode
-    void Update(glm::mat4 projectionMatrix, Camera* camera);
+    void Update(glm::mat4 projectionMatrix, Camera* camera, glm::vec3 light);
     // Returns the local transformation transform
     // Remember that local is local to an object, where it's center is the origin.
     Transform& GetLocalTransform();

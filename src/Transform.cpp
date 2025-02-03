@@ -30,6 +30,27 @@ void Transform::Rotate(float radians, float x, float y, float z){
     m_modelTransformMatrix = glm::rotate(m_modelTransformMatrix, radians,glm::vec3(x,y,z));        
 }
 
+// void Transform::LookAt(glm::vec3 source, glm::vec3 target){
+//     glm::vec3 forward = target - source;
+//     forward = glm::normalize(forward);
+//     glm::vec3 up(0, 1.0, 0);
+//     glm::vec3 tangent0 = glm::cross(forward, up);
+//     if (tangent0.length < 0.001f)
+//     {
+//     up = new Vector3(1.0, 0, 0);
+//     tangent0 = CrossProduct(forward, up);
+//     }
+//     tangent0.normalize();
+//     up = CrossProduct(forward, tangent0);
+
+//     Matrix rotation = new Matrix(
+//     forward.x, up.x, tangent0.x,
+//     forward.y, up.y, tangent0.y,
+//     forward.z, up.z, tangent0.z
+//     );
+//         m_modelTransformMatrix = glm::rotate(m_modelTransformMatrix, radians,glm::vec3(x,y,z));        
+//     }
+
 void Transform::Scale(float x, float y, float z){
     m_modelTransformMatrix = glm::scale(m_modelTransformMatrix,glm::vec3(x,y,z));        
 }

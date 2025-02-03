@@ -17,7 +17,7 @@ SceneNode::SceneNode(Object* ob){
 	std::string vertexShader = m_shader.LoadShader("./shaders/vert.glsl");
 	std::string fragmentShader = m_shader.LoadShader("./shaders/frag.glsl");
 	// Actually create our shader
-	m_shader.CreateShader(vertexShader,fragmentShader);       
+	m_shader.CreateShader(vertexShader,fragmentShader);  
 }
 
 // The destructor 
@@ -65,10 +65,8 @@ void SceneNode::Draw(){
 // object. This is done by calling directly
 // the objects update method.
 // TODO: Consider not passting projection and camera here
-void SceneNode::Update(glm::mat4 projectionMatrix, Camera* camera){
+void SceneNode::Update(glm::mat4 projectionMatrix, Camera* camera, glm::vec3 light){
     if(m_object!=nullptr){
-        // TODO: Implement here!
-
 		// if there is a parent, multiple its parent's world transfom by this nodes local transform
 		if (m_parent) {
 			m_worldTransform = m_parent->m_worldTransform * m_localTransform;
@@ -94,14 +92,16 @@ void SceneNode::Update(glm::mat4 projectionMatrix, Camera* camera){
         // Create a 'light'
         m_shader.SetUniform3f("lightColor",1.0f,1.0f,1.0f);
         m_shader.SetUniform3f("lightPos",
-                               camera->GetEyeXPosition() + camera->GetViewXDirection(),
-                               camera->GetEyeYPosition() + camera->GetViewYDirection(),
-                               camera->GetEyeZPosition() + camera->GetViewZDirection());
+                               light.x,
+                               light.y,
+                               light.z);
+							   
+                                //std::cout << "l" << light.x << " " << light.y << " " << light.z << std::endl;
         m_shader.SetUniform1f("ambientIntensity",0.5f);
 	
 		// Iterate through all of the children
 		for(int i =0; i < m_children.size(); ++i){
-			m_children[i]->Update(projectionMatrix, camera);
+			m_children[i]->Update(projectionMatrix, camera, light);
 		}
 	}
 }

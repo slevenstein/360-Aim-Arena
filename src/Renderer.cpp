@@ -24,7 +24,7 @@ Renderer::~Renderer(){
     }
 }
 
-void Renderer::Update(){
+void Renderer::Update(glm::vec3 light){
     // Here we apply the projection matrix which creates perspective.
     // The first argument is 'field of view'
     // Then perspective
@@ -37,7 +37,7 @@ void Renderer::Update(){
         // TODO: By default, we will only have one camera
         //       You may otherwise not want to hardcode
         //       a value of '0' here.
-        m_root->Update(m_projectionMatrix, m_cameras[0]);
+        m_root->Update(m_projectionMatrix, m_cameras[0], light);
     }
 }
 

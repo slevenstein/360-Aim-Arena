@@ -1,6 +1,5 @@
 #include "SDLGraphicsProgram.hpp"
 #include "Camera.hpp"
-#include "Terrain.hpp"
 #include "Sphere.hpp"
 
 #include <iostream>
@@ -125,7 +124,7 @@ float getRandCoordinateXZ(float min, float max) {
 }
 
 float getRandCoordinateY(float max) {
-    return static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * max / 4;
+    return static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 100.f / 4;
 }
 
 
@@ -157,7 +156,7 @@ SceneNode* Eye;
 void SDLGraphicsProgram::Loop(){
 
     // 800 = 20 seconds
-    int timer = 800;
+    int timer = 8000;
     bool timerStarted = false;
     int score = 0;
 
@@ -166,7 +165,7 @@ void SDLGraphicsProgram::Loop(){
     // ================== Initialize the planets ===============
     static float rotate = 1.0f;
     // max distance of each coordinate (X,Y,Z) from camera
-    static float maxCoord = 20.0f;
+    static float maxCoord = 40.0f;
     // min distance of X and Z coordinate from camera
     static float minCoord = 10.0f;
 
@@ -177,7 +176,7 @@ void SDLGraphicsProgram::Loop(){
     Object* root = new Object;
     SceneNode* rootNode = new SceneNode(root);
 
-    // Create new geometry for Earth's Moon
+    // Create new geometry for eye
     sphere = new Sphere();
     sphere->LoadTexture("eye.ppm");
     Eye = new SceneNode(sphere);
@@ -185,6 +184,9 @@ void SDLGraphicsProgram::Loop(){
     Object* grass = new Object;
     grass->MakeTexturedQuad("grass.ppm");
     SceneNode* Grass = new SceneNode(grass);
+
+    Object* grass2 = new Object;
+    SceneNode* Grass2 = new SceneNode(grass2);
 
     Sphere* sphere2 = new Sphere();
     sphere2->LoadTexture("crosshair.ppm");
@@ -195,20 +197,22 @@ void SDLGraphicsProgram::Loop(){
     rootNode->AddChild(Crosshair);
     rootNode->AddChild(Eye);
     rootNode->AddChild(Grass);
+    rootNode->AddChild(Grass2);
 
     //SET INITIAL TRANSFORMS
     Grass->GetLocalTransform().LoadIdentity();		
-    Grass->GetLocalTransform().Translate(0.0f, -3.0f, 0.0f);
+    Grass->GetLocalTransform().Translate(0.0f, -15.0f, 0.0f);
     Grass->GetLocalTransform().Rotate(glm::radians(90.0f),1.0f,0.0f,0.0f);
-    Grass->GetLocalTransform().Scale(50.0f,50.0f,50.0f);
-    
-    Eye->GetLocalTransform().LoadIdentity();		
+    Grass->GetLocalTransform().Scale(100.0f,100.0f,100.0f);
+
+    Eye->GetLocalTransform().LoadIdentity();
     Eye->GetLocalTransform().Translate(randX, randY, randZ);
     Eye->GetLocalTransform().Scale(0.05f,0.05f,0.05f);
     
     Crosshair->GetLocalTransform().LoadIdentity();		
     Crosshair->GetLocalTransform().Translate(0.0f, 0.0f, 1.0f);
     Crosshair->GetLocalTransform().Scale(0.005f,0.005f,0.005f);
+    //SET INITIAL TRANSFORMS
 
     // Set a default position for our camera
     m_renderer->GetCamera(0)->SetCameraEyePosition(0.0f,0.0f,0.0f);
@@ -224,6 +228,8 @@ void SDLGraphicsProgram::Loop(){
 
     // Set the camera speed for how fast we move.
     float cameraSpeed = 5.0f;
+
+    glm::vec3 light(randX, randY, randZ);
 
     // While application is running
     while(!quit){
@@ -242,7 +248,8 @@ void SDLGraphicsProgram::Loop(){
                 int mouseY = e.motion.yrel;
 
                 m_renderer->GetCamera(0)->MouseLook(m_sens, -mouseX, -mouseY);
-                // listen... if it works, it works
+                
+                // make crosshair/sphere follow player's center of screen
                 Crosshair->GetLocalTransform().LoadIdentity();
                 Crosshair->GetLocalTransform().Scale(0.0005f,0.0005f,0.0005f);
                 Crosshair->GetLocalTransform().Translate(m_renderer->GetCamera(0)->GetViewXDirection()*200,m_renderer->GetCamera(0)->GetViewYDirection()*200,m_renderer->GetCamera(0)->GetViewZDirection()*200);
@@ -259,14 +266,31 @@ void SDLGraphicsProgram::Loop(){
                 case SDL_MOUSEBUTTONDOWN:
                     switch (e.button.button)
                     {
+                        // case SDL_BUTTON_RIGHT:
+                        //     light.x -= .5f;
                         case SDL_BUTTON_LEFT:
                             if (m_renderer->GetCamera(0)->LookingAtEye((glm::vec3(randX, randY, randZ)))) {
+                                // set eye to face player
                                 randX = getRandCoordinateXZ(minCoord, maxCoord);
                                 randZ = getRandCoordinateXZ(minCoord, maxCoord);
                                 randY = getRandCoordinateY(maxCoord);
+
+                                // make point light follow eyeball so player can more easily find next posn
+                                // todo: fix bug where light posn is wrong
+                                light = glm::vec3(randX, randY, randZ);
+
                                 Eye->GetLocalTransform().LoadIdentity();
                                 Eye->GetLocalTransform().Translate(randX, randY, randZ);
-                                //std::cout << randX << " " << randY << " " << randZ << std::endl;
+                                
+                                // rotate the eyeball to look at the camera
+                                float constant = (randZ > 0) ? -glm::pi<float>()/2 : glm::pi<float>()/2;
+                                Eye->GetLocalTransform().Rotate(glm::atan(randX/randZ) + constant, 0.0f, 1.0f, 0.0f);
+
+                                float length = sqrt(randZ * randZ + randX * randX);
+                                Eye->GetLocalTransform().Rotate(glm::atan(randY/length) , 0.0f, 0.0f, 1.f);
+
+                                std::cout << randX << " " << randY << " " << randZ << std::endl;
+
                                 score++;
                                 timerStarted = true;
                             }
@@ -275,10 +299,11 @@ void SDLGraphicsProgram::Loop(){
             }
         } // End SDL_PollEvent loop.
 
-        Eye->GetLocalTransform().Rotate(0.3f, 0.0f, 1.0f, 0.0f);
+        // make the eye spin
+        Eye->GetLocalTransform().Rotate(0.2f, 0.0f, 1.0f, 0.0f);
 
         // Update our scene through our renderer
-        m_renderer->Update();
+        m_renderer->Update(light);
         // Render our scene using our selected renderer
         m_renderer->Render();
         // Delay to slow things down just a bit!
@@ -291,7 +316,7 @@ void SDLGraphicsProgram::Loop(){
 
         if (timerStarted) {
             timer--;
-            std::cout << timer << std::endl;
+            //std::cout << timer << std::endl;
             if (timer < 0) {
                 quit = true;
             }

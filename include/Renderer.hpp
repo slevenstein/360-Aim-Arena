@@ -31,7 +31,7 @@ public:
     // Destructor
     ~Renderer();
     // Update the scene
-    void Update();
+    void Update(glm::vec3 light);
     // Render the scene
     void Render();
     // Sets the root of our renderer to some node to

@@ -91,7 +91,8 @@ glm::mat4 Camera::GetWorldToViewmatrix() const{
                         m_upVector);
 }
 
- bool Camera::LookingAtEye(glm::vec3 eyeballPos) {
+// returns true if player has crosshair on eyeball
+bool Camera::LookingAtEye(glm::vec3 eyeballPos) {
     float eyeballRadius = 1.0f;
 
     // eyeball distance from camera location/eye (3D)
